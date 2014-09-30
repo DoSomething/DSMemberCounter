@@ -29,7 +29,7 @@ app.get('/', function(req, res){
 });
 
 app.get('/total', function(req, res){
-	res.json({count: totalUsers});
+	res.json(getCountJSON());
 });
 
 io.on('connection', function(socket){
@@ -193,9 +193,28 @@ Date.prototype.subMinutes = function(m) {
     return this;
 }
 
+function getCountJSON(){
+	return {count: totalUsers};
+}
+
 function backupLoop(){
 	countFile.total = totalUsers;
 	fs.writeFile("count.json", JSON.stringify(countFile));
+}
+
+function postLoop(){
+	var URLS = app_config.post_urls;
+	for(var i = 0; i < URLS.length; i++){
+		sendCountPost(URLS[i]);
+	}
+}
+
+function sendCountPost(url){
+	request
+    .post(url)
+    .set('Accept', 'application/json')
+    .send(getCountJSON())
+    .end(function(res){});
 }
 
 var server = app.listen(4012, function() {
