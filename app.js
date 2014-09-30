@@ -223,4 +223,5 @@ var server = app.listen(4012, function() {
     	getMessages(1);
     });
     setInterval(backupLoop, app_config.backup_time * 1000);
+    setInterval(postLoop, app_config.post_frequency * 1000);
 });
