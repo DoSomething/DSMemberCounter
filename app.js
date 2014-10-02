@@ -224,4 +224,4 @@ var server = app.listen(4012, function() {
     });
     setInterval(backupLoop, app_config.backup_time * 1000);
     setInterval(postLoop, app_config.post_frequency * 1000);
-});
+});//testing if hubot works
