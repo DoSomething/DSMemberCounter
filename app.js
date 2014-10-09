@@ -216,7 +216,7 @@ function postLoop(){
      .set("Content-type", "application/json")
      .set("X-CSRF-Token", drupalToken)
      .set("Cookie", drupalSessionName + "=" + drupalSessid)
-     .send({"name": "dosomething_user_member_count", "value": "2962601"})
+     .send({"name": "dosomething_user_member_count", "value": totalUsers})
      .end(function(res){});
 }
 
