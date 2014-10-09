@@ -19,11 +19,6 @@ var drupalToken;
 var drupalSessid;
 var drupalSessionName;
 
-/*
- * StatHat
- * Find better solution to read Mobile Commons XML
- */
-
 app.get('/', function(req, res){
  	res.send('Hi, how can I help you? Do you belong here? Whats your name? What is the answer to everything?');
 });
@@ -196,7 +191,7 @@ function testSSH(callback){
 
 function connectToDrupal(callback){
 	request
-	 .post("http://staging.beta.dosomething.org/api/v1/auth/login")
+	 .post(app_config.drupal_auth_url)
 	 .set('Content-Type', 'application/json')
 	 .set('Accept', 'application/json')
 	 .send({"username": app_config.drupal_app_username, "password": app_config.drupal_app_password})
@@ -211,7 +206,7 @@ function connectToDrupal(callback){
 
 function postLoop(){
 	request
-     .post("http://staging.beta.dosomething.org/api/v1/system/set_variable")
+     .post(app_config.drupal_var_url)
      .set('Accept', 'application/json')
      .set("Content-type", "application/json")
      .set("X-CSRF-Token", drupalToken)
@@ -227,9 +222,18 @@ function handleDrupalUpdate(){
     });
 }
 
+function updateLobbyDash(){
+	request
+     .post("http://lobby.dosomething.org:3000/update_count")
+     .send({"password": app_config.lobby_dash_password, "total": totalUsers})
+     .end(function(res){});
+}
+
 var server = app.listen(4012, function() {
     console.log('Listening on port %d', server.address().port);
     getMessages(1);
+    updateLobbyDash();
+    setInterval(updateLobbyDash, 60 * 1000);
     setInterval(backupLoop, app_config.backup_time * 1000);
     handleDrupalUpdate();
     setInterval(handleDrupalUpdate, app_config.post_frequency * 1000);
