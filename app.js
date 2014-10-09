@@ -15,11 +15,11 @@ var totalUsers = countFile.total;
 
 var app_config = require(__dirname + '/config/app_config.json');
 
+var drupalToken;
+var drupalSessid;
+var drupalSessionName;
+
 /*
- x Integrate code from Dashboard to count members
- X Allow sockets to be opended
- X Allow GET requests
- * Scheldue PUT requests
  * StatHat
  * Find better solution to read Mobile Commons XML
  */
@@ -35,38 +35,6 @@ app.get('/total', function(req, res){
 io.on('connection', function(socket){
 	socket.emit('count', totalUsers);
 });
-
-/*
- * Grabs the total users from the Data dashboard and returns it in a callback
- */
-function calculateTotalUsers(callback){
-	var url = "http://dashboards.dosomething.org/";
-	var total = 0;
-	request
-	.get(url)
-	.end(function(res) {
-		var pageHTML = res.text;
-		var $ = cheerio.load(pageHTML);
-		var data = $('#total_member_count').text().replace("CURRENT MEMBERS: ", "");
-		var num = parseInt(replaceAll(',', '', data));
-		callback(num);
-	});
-}
-
-/*
- * Gets the remote total and determines if we should use our local count or the
- * remote count. Also saves our current count to file.
- */
-function processUsers(callback){
-	calculateTotalUsers(function(remoteTotal){
-		if(remoteTotal > totalUsers){
-			totalUsers = remoteTotal;
-		}
-		countFile.total = totalUsers;
-		fs.writeFile("count.json", JSON.stringify(countFile));
-		callback();
-	});
-}
 
 /*
  * Paginates through the last minute of mobile commons data & finds how many people
@@ -93,7 +61,7 @@ function getMessages(pageNumber){
 			var obj = JSON.parse(jsonResult);
 
 			if(obj.response.messages[0].message == undefined){
-				return
+				return;
 			}
 
 			for(var index = 0; index < obj.response.messages[0].message.length; index++){
@@ -197,31 +165,73 @@ function getCountJSON(){
 	return {count: totalUsers};
 }
 
+function processUsers(raw){
+	var data = JSON.parse(raw);
+	var remoteTotal = data.total;
+	if(remoteTotal > totalUsers){
+		totalUsers = remoteTotal;
+	}
+	countFile.total = totalUsers;
+	fs.writeFile("count.json", JSON.stringify(countFile));
+}
+
 function backupLoop(){
 	countFile.total = totalUsers;
 	fs.writeFile("count.json", JSON.stringify(countFile));
 }
 
-function postLoop(){
-	var URLS = app_config.post_urls;
-	for(var i = 0; i < URLS.length; i++){
-		sendCountPost(URLS[i]);
-	}
+function testSSH(callback){
+	var childProcess = require('child_process').spawn;
+	var ssh = childProcess('ssh', [
+	    '-p',
+	    '38383',
+	    'dosomething@admin.dosomething.org',
+	    'cat tmp/member_count.json'
+	]).on('exit', function(code){});
+
+	ssh.stdout.on('data', function(data) {
+    	callback((data.toString())); 
+	});
 }
 
-function sendCountPost(url){
+function connectToDrupal(callback){
 	request
-    .post(url)
-    .set('Accept', 'application/json')
-    .send(getCountJSON())
-    .end(function(res){});
+	 .post("http://staging.beta.dosomething.org/api/v1/auth/login")
+	 .set('Content-Type', 'application/json')
+	 .set('Accept', 'application/json')
+	 .send({"username": app_config.drupal_app_username, "password": app_config.drupal_app_password})
+	 .end(function(res){
+	 	var raw = res.body;
+	 	drupalToken = raw.token;
+	 	drupalSessid = raw.sessid;
+	 	drupalSessionName = raw.session_name;
+	 	callback();
+	 });
+}
+
+function postLoop(){
+	request
+     .post("http://staging.beta.dosomething.org/api/v1/system/set_variable")
+     .set('Accept', 'application/json')
+     .set("Content-type", "application/json")
+     .set("X-CSRF-Token", drupalToken)
+     .set("Cookie", drupalSessionName + "=" + drupalSessid)
+     .send({"name": "dosomething_user_member_count", "value": "2962601"})
+     .end(function(res){});
+}
+
+function handleDrupalUpdate(){
+	connectToDrupal(function(){
+    	postLoop();
+    });
 }
 
 var server = app.listen(4012, function() {
     console.log('Listening on port %d', server.address().port);
-    processUsers(function onProcess(){
-    	getMessages(1);
-    });
+    getMessages(1);
     setInterval(backupLoop, app_config.backup_time * 1000);
-    setInterval(postLoop, app_config.post_frequency * 1000);
+    //setInterval(handleDrupalUpdate, app_config.post_frequency * 1000);
+    testSSH(function(raw){
+    	processUsers(raw);
+    });
 });
