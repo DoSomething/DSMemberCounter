@@ -222,6 +222,7 @@ function postLoop(){
 
 function handleDrupalUpdate(){
 	connectToDrupal(function(){
+		console.log("Drupal auth complete");
     	postLoop();
     });
 }
