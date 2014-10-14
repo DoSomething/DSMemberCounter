@@ -226,7 +226,7 @@ function handleDrupalUpdate(){
 
 function updateLobbyDash(){
 	request
-     .post("http://lobby.dosomething.org:3000/update_count")
+     .post("http://lobby.dosomething.org:3000/setcount")
      .send({"password": app_config.lobby_dash_password, "total": totalUsers})
      .end(function(res){});
 }
@@ -234,14 +234,12 @@ function updateLobbyDash(){
 var server = app.listen(4012, function() {
     console.log('Listening on port %d', server.address().port);
     getMessages(1);
-    //updateLobbyDash();
+    updateLobbyDash();
     //setInterval(updateLobbyDash, 60 * 1000);
-    setInterval(backupLoop, app_config.backup_time * 1000);
     handleDrupalUpdate();
     setInterval(handleDrupalUpdate, app_config.post_frequency * 1000);
     connectSSH(function(raw){
-    	console.log(raw);
-    	return;
     	processUsers(raw);
     });
+    setInterval(backupLoop, app_config.backup_time * 1000);
 });
