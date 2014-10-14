@@ -175,14 +175,16 @@ function backupLoop(){
 	fs.writeFile("count.json", JSON.stringify(countFile));
 }
 
-function testSSH(callback){
+function connectSSH(callback){
 	var childProcess = require('child_process').spawn;
 	var ssh = childProcess('ssh', [
 	    '-p',
 	    '38383',
 	    'dosomething@admin.dosomething.org',
-	    'cat tmp/member_count.json'
-	]).on('exit', function(code){});
+	    'cat ../../tmp/member_count.json'
+	]).on('exit', function(code){
+		console.log("Done: " + code);
+	});
 
 	ssh.stdout.on('data', function(data) {
     	callback((data.toString())); 
@@ -237,7 +239,9 @@ var server = app.listen(4012, function() {
     setInterval(backupLoop, app_config.backup_time * 1000);
     handleDrupalUpdate();
     setInterval(handleDrupalUpdate, app_config.post_frequency * 1000);
-    testSSH(function(raw){
+    connectSSH(function(raw){
+    	console.log(raw);
+    	return;
     	processUsers(raw);
     });
 });
