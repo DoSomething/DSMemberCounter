@@ -168,6 +168,8 @@ function processUsers(raw){
 	}
 	countFile.total = totalUsers;
 	fs.writeFile("count.json", JSON.stringify(countFile));
+	updateLobbyDash();
+	setInterval(updateLobbyDash, 60 * 1000);
 }
 
 function backupLoop(){
@@ -226,18 +228,18 @@ function handleDrupalUpdate(){
 
 function updateLobbyDash(){
 	request
-     .post("http://lobby.dosomething.org:3000/setcount")
-     .send({"password": app_config.lobby_dash_password, "total": totalUsers})
-     .end(function(res){});
+     //.post("http://lobby.dosomething.org:3000/setcount/" + totalUsers + "/" + app_config.lobby_dash_password)
+     .post("http://localhost:3000/setcount/" + totalUsers + "/" + app_config.lobby_dash_password)
+     .end(function(res){
+     	console.log("Lobby updated " + res.body);
+     });
 }
 
 var server = app.listen(4012, function() {
     console.log('Listening on port %d', server.address().port);
     getMessages(1);
-    updateLobbyDash();
-    //setInterval(updateLobbyDash, 60 * 1000);
-    handleDrupalUpdate();
-    setInterval(handleDrupalUpdate, app_config.post_frequency * 1000);
+    //handleDrupalUpdate();
+    //setInterval(handleDrupalUpdate, app_config.post_frequency * 1000);
     connectSSH(function(raw){
     	processUsers(raw);
     });
