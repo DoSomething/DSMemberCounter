@@ -168,8 +168,8 @@ function processUsers(raw){
 	}
 	countFile.total = totalUsers;
 	fs.writeFile("count.json", JSON.stringify(countFile));
-	updateLobbyDash();
-	setInterval(updateLobbyDash, 60 * 1000);
+	//updateLobbyDash();
+	//setInterval(updateLobbyDash, 60 * 1000);
 }
 
 function backupLoop(){
