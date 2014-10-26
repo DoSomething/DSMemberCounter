@@ -226,6 +226,12 @@ function handleDrupalUpdate(){
     });
 }
 
+function handleSSHUpdate(){
+    connectSSH(function(raw){
+    	processUsers(raw);
+    });
+}
+
 function updateLobbyDash(){
 	request
      .post("http://lobby.dosomething.org:3000/setcount/" + totalUsers + "/" + app_config.lobby_dash_password)
@@ -235,13 +241,16 @@ function updateLobbyDash(){
      });
 }
 
+process.on('uncaughtException', function (err) {
+  console.log('Caught exception: ' + err);
+});
+
 var server = app.listen(4012, function() {
     console.log('Listening on port %d', server.address().port);
     getMessages(1);
     handleDrupalUpdate();
     setInterval(handleDrupalUpdate, app_config.post_frequency * 1000);
-    connectSSH(function(raw){
-    	processUsers(raw);
-    });
+    handleSSHUpdate();
+    setInterval(handleSSHUpdate, 10 * 1000);
     setInterval(backupLoop, app_config.backup_time * 1000);
 });
