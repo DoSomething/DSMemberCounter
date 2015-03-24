@@ -1,6 +1,6 @@
 DSMemberCounter
 ===============
 
-Service for live counting total members across Web & Mobile and providing an API for DS websites to use. 
+This application acts as a bridge between the local DoSomething network/data and our external applications.
 
-Refer to the Github wiki for more information. 
+At the moment it pushes the member count to the main site & the lobby dashboard. 
