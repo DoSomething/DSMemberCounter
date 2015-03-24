@@ -29,7 +29,6 @@ function getMemberCount(callback) {
 function updateApplications() {
   getMemberCount(function(data) {
     updateDrupal(data);
-    //TODO: Update lobby dash
   });
 }
 
@@ -60,5 +59,5 @@ function updateDrupal(data) {
 var server = app.listen(4123, function() {
     console.log('Listening on port %d', server.address().port);
     updateApplications();
-    setTimeout(updateApplications, (5 * 60) * 1000); //Updates every 5 minutes
+    setInterval(updateApplications, (5 * 60) * 1000); //Updates every 5 minutes
 });
