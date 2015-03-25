@@ -30,6 +30,7 @@ function updateApplications() {
   getMemberCount(function(data) {
     updateDrupal(data);
   });
+  updateDashboard();
 }
 
 function updateDrupal(data) {
@@ -58,6 +59,18 @@ function updateDrupal(data) {
          console.log("Updated Drupal, Status Code: " + res.status);
       });
   });
+}
+
+/*
+ * Temp. solution to the Heroku dyno taking a nap...
+ */
+function updateDashboard() {
+  request
+    .get("dsrealtimefeed.herokuapp.com")
+    .end(function(res) {
+      console.log("Pinged Dashboard, " + res.status)
+      //if status code not 200 count in stat hat
+    });
 }
 
 var server = app.listen(4123, function() {
