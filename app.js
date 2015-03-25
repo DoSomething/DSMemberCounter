@@ -33,6 +33,10 @@ function updateApplications() {
 }
 
 function updateDrupal(data) {
+  if(data.total == undefined) {
+    console.log("Recieved bad data, not updating");
+    return;
+  }
   request
    .post(config.DRUPAL_AUTH)
    .set('Content-Type', 'application/json')
