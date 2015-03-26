@@ -67,7 +67,7 @@ function updateDrupal(data) {
  */
 function updateDashboard() {
   request
-    .get("dsrealtimefeed.herokuapp.com")
+    .get("https://dsrealtimefeed.herokuapp.com/")
     .end(function(res) {
       console.log("Pinged Dashboard, " + res.status)
       if(res.status != 200) {
