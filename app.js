@@ -58,6 +58,9 @@ function updateDrupal(data) {
        .send({"name": "dosomething_user_member_count", "value": data.total})
        .end(function(res){
          console.log("Updated Drupal, Status Code: " + res.status);
+         if(res.status != 200) {
+           stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-drupal_error', 1, function(status, response){});
+         }
       });
   });
 }
