@@ -34,8 +34,9 @@ function updateApplications() {
 }
 
 function updateDrupal(data) {
-  if(data.total == undefined) {
+  if(data == undefined) {
     console.log("Recieved bad data, not updating");
+    stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-sql_error', 1, function(status, response){});
     return;
   }
   request
