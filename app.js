@@ -70,7 +70,9 @@ function updateDashboard() {
     .get("dsrealtimefeed.herokuapp.com")
     .end(function(res) {
       console.log("Pinged Dashboard, " + res.status)
-      //if status code not 200 count in stat hat
+      if(res.status != 200) {
+        stathat.trackEZCount(config.STATHAT, 'dsrealtime-feed-cant_ping', 1, function(status, response){});
+      }
     });
 }
 
