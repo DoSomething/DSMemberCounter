@@ -13,6 +13,8 @@ var connection = mysql.createConnection({
   password: config.SQL_PASSWORD
 });
 
+var memberCount = -1;
+
 app.get('/', function(req, res){
  	res.send('This counts things.');
 });
@@ -22,6 +24,18 @@ function getMemberCount(callback) {
     if(err) {
       console.log(err);
     }
+    if(rows[0] == undefined) {
+      console.log("Recieved bad data, not updating");
+      stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-sql_error', 1, function(status, response){});
+      return;
+    }
+    if(memberCount != -1 || rows[0].total < (memberCount - 50000)) { //allows for margin of error
+      console.log("Lower member count than there should be");
+      stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-low_count', 1, function(status, response){});
+      return;
+    }
+    memberCount = rows[0].total;
+    stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-total', memberCount, function(status, response){});
     callback(rows[0]);
   });
 }
@@ -34,11 +48,6 @@ function updateApplications() {
 }
 
 function updateDrupal(data) {
-  if(data == undefined) {
-    console.log("Recieved bad data, not updating");
-    stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-sql_error', 1, function(status, response){});
-    return;
-  }
   request
    .post(config.DRUPAL_AUTH)
    .set('Content-Type', 'application/json')
@@ -79,7 +88,11 @@ function updateDashboard() {
     });
 }
 
-var server = app.listen(4123, function() {
+process.on('uncaughtException', function (err) {
+    console.log(err);
+});
+
+var server = app.listen(41523, function() {
     console.log('Listening on port %d', server.address().port);
     updateApplications();
     setInterval(updateApplications, (5 * 60) * 1000); //Updates every 5 minutes
