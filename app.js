@@ -29,7 +29,7 @@ function getMemberCount(callback) {
       stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-sql_error', 1, function(status, response){});
       return;
     }
-    if(memberCount != -1 || rows[0].total < (memberCount - 50000)) { //allows for margin of error
+    if(memberCount != -1 && rows[0].total < (memberCount - 50000)) { //allows for margin of error
       console.log("Lower member count than there should be");
       stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-low_count', 1, function(status, response){});
       return;
