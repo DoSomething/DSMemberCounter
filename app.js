@@ -13,6 +13,11 @@ var connection = mysql.createConnection({
   password: config.SQL_PASSWORD
 });
 
+connection.on('error', function() {
+  console.log("MYSQL Connection Error!");
+  stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-sql_error', 1, function(status, response){});
+});
+
 var memberCount = -1;
 
 app.get('/', function(req, res){
