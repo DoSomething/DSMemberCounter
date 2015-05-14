@@ -10,8 +10,11 @@ var mysql = require('mysql');
 var connection = mysql.createConnection({
   host: config.SQL_HOST,
   user: config.SQL_USER,
-  password: config.SQL_PASSWORD
+  password: config.SQL_PASSWORD,
+  database: config.SQL_DB
 });
+
+var query = 'select round((count(phone_number) + (select count(*) from mailchimp_sub )) *.905) as total from mobile_users where status = \'Active Subscriber\'';
 
 connection.on('error', function() {
   console.log("MYSQL Connection Error!");
@@ -25,7 +28,7 @@ app.get('/', function(req, res){
 });
 
 function getMemberCount(callback) {
-  connection.query("select total from overall.total", function(err, rows, fields) {
+  connection.query(query, function(err, rows, fields) {
     if(err) {
       console.log(err);
     }
@@ -39,6 +42,7 @@ function getMemberCount(callback) {
       stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-low_count', 1, function(status, response){});
       return;
     }
+    console.log(rows[0]);
     memberCount = rows[0].total;
     stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-total', memberCount, function(status, response){});
     callback(rows[0]);
@@ -47,9 +51,9 @@ function getMemberCount(callback) {
 
 function updateApplications() {
   getMemberCount(function(data) {
-    updateDrupal(data);
+    //updateDrupal(data);
   });
-  updateDashboard();
+  //updateDashboard();
 }
 
 function updateDrupal(data) {
