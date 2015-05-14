@@ -42,7 +42,6 @@ function getMemberCount(callback) {
       stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-low_count', 1, function(status, response){});
       return;
     }
-    console.log(rows[0]);
     memberCount = rows[0].total;
     stathat.trackEZCount(config.STATHAT, 'dsrealtime-counter-total', memberCount, function(status, response){});
     callback(rows[0]);
@@ -51,9 +50,9 @@ function getMemberCount(callback) {
 
 function updateApplications() {
   getMemberCount(function(data) {
-    //updateDrupal(data);
+    updateDrupal(data);
   });
-  //updateDashboard();
+  updateDashboard();
 }
 
 function updateDrupal(data) {
