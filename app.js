@@ -14,7 +14,7 @@ var connection = mysql.createConnection({
   database: config.SQL_DB
 });
 
-var query = 'select round((count(phone_number) + (select count(*) from mailchimp_sub )) *.905) as total from mobile_users where status = \'Active Subscriber\'';
+var query = 'select round((count(phone_number) + (select count(*) from ' + config.SQL_DB + '.mailchimp_sub )) *.905) as total from ' + config.SQL_DB + '.mobile_users where status = \'Active Subscriber\'';
 
 connection.on('error', function() {
   console.log("MYSQL Connection Error!");
