@@ -14,7 +14,36 @@ var connection = mysql.createConnection({
   database: config.SQL_DB
 });
 
-var query = 'select round((count(phone_number) + (select count(*) from ' + config.SQL_DB + '.mailchimp_sub )) *.905) as total from ' + config.SQL_DB + '.mobile_users where status = \'Active Subscriber\'';
+var query = `select
+        round(sum(a.active_email) + sum(a.mobile_members) - (sum(a.duplicates)*.674) + 164500) as 'total'
+      from(
+        select ### web data ###
+          count(distinct(u.uid)) as 'web_members_uid',
+          null as 'mobile_members',
+          null as 'duplicates',
+          null as 'active_email'
+        from dosomething.users u
+          inner join users_and_activities.mailchimp_sub ms
+            on u.mail = ms.email_address
+          left join users_and_activities.mailchimp_unsub mus
+          on mus.email_address = ms.email_address
+        where mus.email_address is null
+      union
+        select ### email data ###
+          null as 'web_members_uid',
+          null as 'mobile_members',
+          null as 'duplicates',
+          count(distinct(ms.email_address)) as 'active_email'
+        from users_and_activities.mailchimp_sub_daily ms
+      union
+        select ### mobile data ###
+          null as 'web_members_uid',
+          count(distinct(case when mu.status = 'Active Subscriber' then mu.phone_number end)) as 'mobile_members',
+          count(distinct(case when mu.status = 'Active Subscriber' and mu.uid > 1 then mu.phone_number end)) as 'duplicates',
+          null as 'active_email'
+        from users_and_activities.mobile_user_lookup mu
+      ) as a;`
+
 
 connection.on('error', function() {
   console.log("MYSQL Connection Error!");
